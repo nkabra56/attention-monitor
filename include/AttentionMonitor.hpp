@@ -9,7 +9,7 @@
 enum class AttentionState { ATTENTIVE, DISTRACTED };
 
 struct MonitorAlert {
-    int  level = 0;      // 0-none, 1-WL1, 2-WL2
+    int  level = 0;      // 0 = none, 1 = WL1, 2 = WL2
     bool newEvent = false;
 };
 
@@ -26,15 +26,16 @@ public:
         update(const cv::Mat& frame, cv::Mat& annotated);
 
 private:
-    cv::dnn::Net                        faceNet;
-    cv::Ptr<cv::face::Facemark>         facemark;
+    cv::dnn::Net                faceNet;
+    cv::Ptr<cv::face::Facemark> facemark;
 
     int eyesClosedFrames = 0;
     int poseOffFrames    = 0;
+    int noLmFrames       = 0;      
 
-    AttentionState lastState = AttentionState::ATTENTIVE;
+    AttentionState    lastState  = AttentionState::ATTENTIVE;
     Clock::time_point stateStart;
-    int warningLevel = 0;
+    int               warningLevel = 0;
 
     bool findFace(const cv::Mat& frame, cv::Rect& faceBox);
     bool findLandmarks(const cv::Mat& gray,
