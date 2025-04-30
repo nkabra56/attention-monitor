@@ -41,7 +41,7 @@ public:
     static constexpr double warning1LockSec = 5.0;
 
 private:
-    // ─── Models & IO ──────────────────────────────────────────────
+    // ─── Models ────────────────────────────────────────────────────
     cv::dnn::Net                      faceNet;
     cv::Ptr<cv::face::Facemark>       facemark;
 
@@ -49,7 +49,7 @@ private:
     bool    camInit       = false;
     cv::Mat cameraMatrix, distCoeffs;
 
-    // ─── Frame counters & FSM ────────────────────────────────────
+    // ─── Frame counters & FSM ─────────────────────────────────────
     int eyesClosedFrames = 0;
     int poseOffFrames    = 0;
     int noLmFrames       = 0;
@@ -57,7 +57,7 @@ private:
     Clock::time_point stateStart;
     int               warningLevel = 0;
 
-    // ─── Blink & head‐pose thresholds ────────────────────────────
+    // ─── Blink & head‐pose thresholds ─────────────────────────────
     static constexpr double earThresh       = 0.20;
     static constexpr int    earFramesThresh = 3;
     static constexpr double yawThreshEnter  = 18.0;
@@ -68,18 +68,18 @@ private:
     static constexpr int    pitchFramesThresh = 15;
     static constexpr int    noLmMaxFrames   = 3;
 
-    // ─── Gaze & yawn thresholds ──────────────────────────────────
+    // ─── Gaze & yawn thresholds ───────────────────────────────────
     static constexpr double gazeThresh     = 0.35;
     static constexpr double marThresh      = 0.6;
     static constexpr int    marFramesThresh = 5;
 
-    // ─── Hybrid detect/track ─────────────────────────────────────
+    // ─── Hybrid detect/track ───────────────────────────────────────
     static constexpr int    detectInterval = 5;
     int                     frameCounter   = 0;
     cv::Mat                 prevGray;
     std::vector<cv::Point2f> prevPts;
 
-    // ─── Smoothing buffers ───────────────────────────────────────
+    // ─── Smoothing buffers ─────────────────────────────────────────
     double yawSmoothed        = 0.0;
     static constexpr double yawSmoothAlpha = 0.1;
     std::deque<double>       yawHistory;
@@ -90,15 +90,15 @@ private:
     std::deque<double>       pitchHistory;
     static constexpr int     pitchHistSize   = 7;
 
-    // ─── Head‐nod & yawn counters ────────────────────────────────
+    // ─── Head‐nod & yawn counters ─────────────────────────────────
     int headNodFrames = 0;
     int marFrames     = 0;
 
-    // ─── Kalman filters ──────────────────────────────────────────
+    // ─── Kalman filters ───────────────────────────────────────────
     cv::KalmanFilter kfYaw{1,1,0}, kfPitch{1,1,0}, kfMar{1,1,0};
     cv::Mat          kfMeas, kfState;
 
-    // ─── Helpers ─────────────────────────────────────────────────
+    // ─── Helpers ───────────────────────────────────────────────────
     bool findFace(const cv::Mat& frame, cv::Rect& faceBox);
     bool findLandmarks(const cv::Mat& gray,
                        const cv::Rect& faceBox,
