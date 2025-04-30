@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\nkabr\Documents\Nishant\College\IIT\SPRING-2025\IPRO-497\ipro-day-demo\attention-monitor\build\CMakeFiles\1928e4164f8d16ddb6db6cf3305a625e\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F7AD0846-2DC0-3BE5-8C6D-A13EC3EEEC9C}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

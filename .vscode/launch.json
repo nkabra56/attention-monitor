@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug demo",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/attention_demo.exe",
+        "args": [],
+        "cwd": "${workspaceFolder}/build",
+        "stopAtEntry": false,
+        "environment": [],
+        "console": "integratedTerminal"
+      }
+    ]
+  }
+  

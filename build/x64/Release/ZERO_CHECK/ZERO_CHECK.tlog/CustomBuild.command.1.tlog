@@ -1,0 +1,10 @@
+^C:\USERS\NKABR\DOCUMENTS\NISHANT\COLLEGE\IIT\SPRING-2025\IPRO-497\IPRO-DAY-DEMO\ATTENTION-MONITOR\BUILD\CMAKEFILES\1928E4164F8D16DDB6DB6CF3305A625E\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/nkabr/Documents/Nishant/College/IIT/SPRING-2025/IPRO-497/ipro-day-demo/attention-monitor -BC:/Users/nkabr/Documents/Nishant/College/IIT/SPRING-2025/IPRO-497/ipro-day-demo/attention-monitor/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/nkabr/Documents/Nishant/College/IIT/SPRING-2025/IPRO-497/ipro-day-demo/attention-monitor/build/attention_monitor.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -4,8 +4,17 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/face.hpp>
 #include <opencv2/dnn.hpp>
+#include <chrono>
 
-enum class AttentionState { ATTENTIVE, DISTRACTED, DROWSY };
+enum class AttentionState { ATTENTIVE, DISTRACTED };
+
+struct MonitorAlert {
+    int  level = 0;      // 0-none, 1-WL1, 2-WL2
+    bool newEvent = false;
+};
+
+using Clock   = std::chrono::steady_clock;
+using Seconds = std::chrono::duration<double>;
 
 class AttentionMonitor {
 public:
@@ -13,27 +22,24 @@ public:
                      const std::string& ssdModel,
                      const std::string& lbfModel);
 
-    /** Process a new video frame.
-     *  @param frame      BGR input image
-     *  @param annotated  Output image with overlays (can be the same Mat)
-     *  @return current attention state
-     */
-    AttentionState update(const cv::Mat& frame, cv::Mat& annotated);
+    std::pair<AttentionState, MonitorAlert>
+        update(const cv::Mat& frame, cv::Mat& annotated);
 
 private:
-    cv::dnn::Net faceNet;                       // SSD face detector
-    cv::Ptr<cv::face::Facemark> facemark;       // 68-landmark predictor
+    cv::dnn::Net                        faceNet;
+    cv::Ptr<cv::face::Facemark>         facemark;
 
-    int eyesClosedFrames  = 0;                  // consecutive frames
-    int poseOffFrames     = 0;
-    int longEyesClosed    = 0;                  // 5 s window
+    int eyesClosedFrames = 0;
+    int poseOffFrames    = 0;
 
-    // internal helpers
+    AttentionState lastState = AttentionState::ATTENTIVE;
+    Clock::time_point stateStart;
+    int warningLevel = 0;
+
     bool findFace(const cv::Mat& frame, cv::Rect& faceBox);
     bool findLandmarks(const cv::Mat& gray,
                        const cv::Rect& faceBox,
-                       std::vector<cv::Point2f>& landmarks);
-
+                       std::vector<std::vector<cv::Point2f>>& lms);
     double eyeAspectRatio(const std::vector<cv::Point2f>& lm);
     double headYaw(const std::vector<cv::Point2f>& lm);
 };
