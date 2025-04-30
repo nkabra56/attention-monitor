@@ -112,7 +112,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=attention_monitor
+CMAKE_PROJECT_NAME:STATIC=attention_demo
 
 //RC compiler
 CMAKE_RC_COMPILER:FILEPATH=rc
@@ -325,6 +325,15 @@ _vcpkg_sharpyuv_LIBRARY_RELEASE:FILEPATH=C:/vcpkg/installed/x64-windows/lib/libs
 absl_DIR:PATH=C:/vcpkg/installed/x64-windows/share/absl
 
 //Value Computed by CMake
+attention_demo_BINARY_DIR:STATIC=C:/Users/nkabr/Documents/Nishant/College/IIT/SPRING-2025/IPRO-497/ipro-day-demo/attention-monitor/build
+
+//Value Computed by CMake
+attention_demo_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+attention_demo_SOURCE_DIR:STATIC=C:/Users/nkabr/Documents/Nishant/College/IIT/SPRING-2025/IPRO-497/ipro-day-demo/attention-monitor
+
+//Value Computed by CMake
 attention_monitor_BINARY_DIR:STATIC=C:/Users/nkabr/Documents/Nishant/College/IIT/SPRING-2025/IPRO-497/ipro-day-demo/attention-monitor/build
 
 //Value Computed by CMake
@@ -497,7 +506,7 @@ FIND_PACKAGE_MESSAGE_DETAILS_HDF5:INTERNAL=[hdf5::hdf5-shared][C:/vcpkg/installe
 //Details about finding LibArchive
 FIND_PACKAGE_MESSAGE_DETAILS_LibArchive:INTERNAL=[C:/vcpkg/installed/x64-windows/debug/lib/archive.lib][C:/vcpkg/installed/x64-windows/include][v3.7.8()]
 //Details about finding OpenCV
-FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[C:/vcpkg/installed/x64-windows][cfound components: core imgproc highgui videoio dnn face ][v4.11.0(4)]
+FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[C:/vcpkg/installed/x64-windows][cfound components: core imgproc highgui video videoio dnn face ][v4.11.0()]
 //Details about finding Protobuf
 FIND_PACKAGE_MESSAGE_DETAILS_Protobuf:INTERNAL=[C:/vcpkg/installed/x64-windows/tools/protobuf/protoc.exe][optimized;C:/vcpkg/installed/x64-windows/bin/libprotobuf.dll;debug;C:/vcpkg/installed/x64-windows/debug/bin/libprotobufd.dll][C:/vcpkg/installed/x64-windows/include][v29.3.0()]
 //Details about finding TIFF
