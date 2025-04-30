@@ -1,5 +1,3 @@
-// File: include/AttentionMonitor.hpp
-
 #ifndef ATTENTION_MONITOR_HPP
 #define ATTENTION_MONITOR_HPP
 
@@ -42,52 +40,64 @@ public:
     static constexpr double warning1LockSec = 5.0;
 
 private:
-    // face detector + landmark fitter
+    // DNN face detector + LBF facemark
     cv::dnn::Net faceNet;
     cv::Ptr<cv::face::Facemark> facemark;
 
-    // frame counters for eyes closed, pose off, missing landmarks
+    // Counters for eye‐closure, pose off, missing landmarks
     int eyesClosedFrames = 0;
     int poseOffFrames    = 0;
     int noLmFrames       = 0;
 
-    // smoothing buffers for yaw
+    // Yaw smoothing
     double yawSmoothed        = 0.0;
     static constexpr double yawSmoothAlpha = 0.1;
     std::deque<double> yawHistory;
     static constexpr int   yawHistSize     = 5;
 
-    // PnP camera intrinsics (initialized on first use)
+    // Camera intrinsics for PnP
     bool    camInit = false;
     cv::Mat cameraMatrix, distCoeffs;
 
-    // thresholds for yaw hysteresis (degrees)
+    // Hysteresis thresholds for head yaw
     static constexpr double yawThreshEnter = 18.0;
     static constexpr double yawThreshExit  = 10.0;
 
-    // state machine & timers
+    // State machine & timers
     AttentionState    lastState   = AttentionState::ATTENTIVE;
     Clock::time_point stateStart;
     int               warningLevel = 0;
 
-    // EAR threshold + required frame counts
+    // EAR threshold + required frames for blink detection
     static constexpr double earThresh       = 0.20;
-    static constexpr int    earFramesThresh = 10;
+    static constexpr int    earFramesThresh = 3;   // << faster response
     static constexpr int    yawFramesThresh = 15;
     static constexpr int    noLmMaxFrames   = 3;
 
-    // ── NEW: hybrid detect/track members ─────────────────────────
-    int                         frameCounter   = 0;     // total frames seen
-    static constexpr int        detectInterval = 7;     // detect every 7th frame
-    cv::Mat                     prevGray;               // last gray frame
-    std::vector<cv::Point2f>    prevPts;                // previous landmarks
+    // Hybrid detect/track members (optical flow)
+    int                         frameCounter   = 0;
+    static constexpr int        detectInterval = 7;
+    cv::Mat                     prevGray;
+    std::vector<cv::Point2f>    prevPts;
 
-    // helper routines
+    // Helpers
     bool findFace(const cv::Mat& frame, cv::Rect& faceBox);
     bool findLandmarks(const cv::Mat& gray,
                        const cv::Rect& faceBox,
                        std::vector<std::vector<cv::Point2f>>& lms);
-    double eyeAspectRatio(const std::vector<cv::Point2f>& lm);
+
+    // Compute EAR for one eye, starting at index i0 (6 points: i0..i0+5)
+    double eyeAspectRatio(const std::vector<cv::Point2f>& lm, int i0);
+
+    // Convenience wrappers for left/right eye
+    inline double leftEyeEAR(const std::vector<cv::Point2f>& lm) {
+        return eyeAspectRatio(lm, 36);
+    }
+    inline double rightEyeEAR(const std::vector<cv::Point2f>& lm) {
+        return eyeAspectRatio(lm, 42);
+    }
+
+    // Not used: PnP is done inline
     double headYaw(const std::vector<cv::Point2f>& lm);
 };
 
