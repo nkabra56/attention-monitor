@@ -30,8 +30,8 @@ A C++/OpenCV application that monitors driver attention via webcam. It detects f
 ```powershell
 git clone https://github.com/microsoft/vcpkg.git
 cd vcpkg
-.ootstrap-vcpkg.bat
-.cpkg install opencv[core,highgui,videoio,dnn,face]:x64-windows
+.bootstrap-vcpkg.bat
+.vcpkg install opencv[core,highgui,videoio,dnn,face]:x64-windows
 ```
 
 ## Build Instructions
@@ -41,15 +41,7 @@ cmake -B build -S . -G "Visual Studio 17 2022" -A x64 ^
       -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake"
 cmake --build build --config Release
 cd build\Release
-.ttention_demo.exe
-```
-
-> On Linux/macOS:
-
-```bash
-cmake -B build -S . -G "Unix Makefiles"
-cmake --build build --config Release
-./build/attention_demo
+.attention_demo.exe
 ```
 
 ## Usage
