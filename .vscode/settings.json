@@ -6,8 +6,10 @@
     },
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
+      "*.rmd": "markdown",
       "array": "cpp",
-      "*.hpp": "cpp"
+      "*.hpp": "cpp",
+      "xstring": "cpp"
     }
   }
   

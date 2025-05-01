@@ -8,28 +8,37 @@
 #endif
 
 #ifdef _WIN32
-static void timedMessageBox(const char* txt,const char* ttl,
-                            UINT flags,DWORD ms)
+// auto‐closing popup
+static void timedMessageBox(const char* txt, const char* ttl,
+                            UINT flags, DWORD ms)
 {
     std::thread([=]{
         Sleep(ms);
-        if(HWND h=FindWindowA(nullptr,ttl))
+        if (HWND h = FindWindowA(nullptr, ttl))
             PostMessageA(h, WM_CLOSE, 0, 0);
     }).detach();
     MessageBoxA(nullptr, txt, ttl, flags | MB_TOPMOST);
 }
 #endif
 
+// launch warning without blocking main loop
 static void fireAlert(AttentionMonitor &mon, int level)
 {
 #ifdef _WIN32
-    std::thread([&mon,level]{
-        if(level==1)
-            timedMessageBox("WARNING LEVEL 1: Distracted >5s",
-                            "Attention Warning", MB_ICONWARNING, 5000);
-        else if(level==2) {
-            timedMessageBox("WARNING LEVEL 2: Distracted >20s",
-                            "Attention Warning", MB_ICONERROR, 5000);
+    std::thread([&]{
+        if(level==1){
+            timedMessageBox(
+              "WARNING LEVEL 1:\nDriver distracted > 5 s",
+              "Attention Warning",
+              MB_ICONWARNING, 5000
+            );
+        }
+        else if(level==2){
+            timedMessageBox(
+              "WARNING LEVEL 2:\nDriver distracted > 20 s",
+              "Attention Warning",
+              MB_ICONERROR, 5000
+            );
             Beep(500,1000);
             mon.resetWarnings();
         }
@@ -43,33 +52,48 @@ static void fireAlert(AttentionMonitor &mon, int level)
 int main()
 {
     AttentionMonitor mon(
-        "./models/deploy.prototxt",
-        "./models/res10_300x300_ssd_iter_140000.caffemodel",
-        "./models/lbfmodel.yaml"
+        "../models/deploy.prototxt",
+        "../models/res10_300x300_ssd_iter_140000.caffemodel",
+        "../models/lbfmodel.yaml"
     );
 
     cv::VideoCapture cam(0, cv::CAP_DSHOW);
     if(!cam.isOpened()){
-        std::cerr<<"Cannot open camera\n";
+        std::cerr<<"No camera\n";
         return -1;
     }
 
-    const std::string win="Driver Attention Monitor";
-    cv::namedWindow(win, cv::WINDOW_AUTOSIZE | cv::WINDOW_GUI_EXPANDED);
+#ifdef _WIN32
+    int sw=GetSystemMetrics(SM_CXSCREEN),
+        sh=GetSystemMetrics(SM_CYSCREEN);
+    int ww=int(sw*0.75), wh=int(sh*0.75),
+        px=(sw-ww)/2, py=(sh-wh)/2;
+#else
+    int ww=1280, wh=720, px=100, py=80;
+#endif
+
+    const std::string win = "Driver Attention Monitor";
+    cv::namedWindow(win, cv::WINDOW_NORMAL);
+    cv::resizeWindow(win, ww, wh);
+    cv::moveWindow(win, px, py);
 
     while(true){
-        cv::Mat frame, out;
+        cv::Mat frame, ann;
         cam >> frame;
         if(frame.empty()) break;
 
-        auto [state,alert] = mon.update(frame, out);
-        if(alert.newEvent && alert.level>0)
+        auto [state, alert] = mon.update(frame, ann);
+        if(alert.newEvent && alert.level>0) {
             fireAlert(mon, alert.level);
+        }
 
-        cv::imshow(win, out);
-        int k = cv::waitKey(1);
-        if(k==27) break;
-        if(cv::getWindowProperty(win, cv::WND_PROP_VISIBLE)<1) break;
+        cv::imshow(win, ann);
+        int key = cv::waitKey(1);
+        if(key==27) break;  // ESC
+
+        // if user clicked 'X', getWindowProperty returns <0 → exit immediately
+        if(cv::getWindowProperty(win, cv::WND_PROP_VISIBLE) < 0)
+            break;
     }
 
     cam.release();

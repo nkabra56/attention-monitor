@@ -1,24 +1,21 @@
-#ifndef ATTENTION_MONITOR_HPP
-#define ATTENTION_MONITOR_HPP
+#pragma once
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/face.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/dnn.hpp>
-#include <opencv2/video/tracking.hpp>
+#include <opencv2/face.hpp>
+#include <opencv2/imgproc.hpp>
 #include <chrono>
 #include <deque>
+#include <vector>
+#include <utility>
+#include <string>
 
-// Possible attention states
-enum class AttentionState { ATTENTIVE, DISTRACTED };
+enum class AttentionState { ATTENTIVE, DISTRACTED, DROWSY };
 
-// Warning info: level (0,1,2) and new‐event flag
 struct MonitorAlert {
-    int  level    = 0;
+    int level    = 0;
     bool newEvent = false;
 };
-
-using Clock   = std::chrono::steady_clock;
-using Seconds = std::chrono::duration<double>;
 
 class AttentionMonitor {
 public:
@@ -26,93 +23,48 @@ public:
                      const std::string& ssdModel,
                      const std::string& lbfModel);
 
-    // Process one frame: draw into 'annotated' and return (state, alert)
     std::pair<AttentionState,MonitorAlert>
-    update(const cv::Mat& frame, cv::Mat& annotated);
+    update(const cv::Mat& frame, cv::Mat& out);
 
-    // Reset warnings (called after Warning2)
-    void resetWarnings() {
-        warningLevel = 0;
-        stateStart   = Clock::now();
-    }
-
-    // Lockout start for Warning1
-    Clock::time_point warning1Time;
-    static constexpr double warning1LockSec = 5.0;
+    // reset warning counts & timers
+    void resetWarnings();
 
 private:
-    // ─── Models ────────────────────────────────────────────────────
-    cv::dnn::Net                      faceNet;
-    cv::Ptr<cv::face::Facemark>       facemark;
-
-    // Camera intrinsics for solvePnP
-    bool    camInit       = false;
-    cv::Mat cameraMatrix, distCoeffs;
-
-    // ─── Frame counters & FSM ─────────────────────────────────────
-    int eyesClosedFrames = 0;
-    int poseOffFrames    = 0;
-    int noLmFrames       = 0;
-    AttentionState    lastState   = AttentionState::ATTENTIVE;
-    Clock::time_point stateStart;
-    int               warningLevel = 0;
-
-    // ─── Blink & head‐pose thresholds ─────────────────────────────
-    static constexpr double earThresh       = 0.20;
-    static constexpr int    earFramesThresh = 3;
-    static constexpr double yawThreshEnter  = 18.0;
-    static constexpr double yawThreshExit   = 10.0;
-    static constexpr int    yawFramesThresh = 15;
-    static constexpr double pitchThreshEnter = 20.0;
-    static constexpr double pitchThreshExit  = 15.0;
-    static constexpr int    pitchFramesThresh = 15;
-    static constexpr int    noLmMaxFrames   = 3;
-
-    // ─── Gaze & yawn thresholds ───────────────────────────────────
-    static constexpr double gazeThresh     = 0.35;
-    static constexpr double marThresh      = 0.6;
-    static constexpr int    marFramesThresh = 5;
-
-    // ─── Hybrid detect/track ───────────────────────────────────────
-    static constexpr int    detectInterval = 5;
-    int                     frameCounter   = 0;
-    cv::Mat                 prevGray;
-    std::vector<cv::Point2f> prevPts;
-
-    // ─── Smoothing buffers ─────────────────────────────────────────
-    double yawSmoothed        = 0.0;
-    static constexpr double yawSmoothAlpha = 0.1;
-    std::deque<double>       yawHistory;
-    static constexpr int     yawHistSize     = 5;
-
-    double pitchSmoothed      = 0.0;
-    static constexpr double pitchSmoothAlpha = 0.07;
-    std::deque<double>       pitchHistory;
-    static constexpr int     pitchHistSize   = 7;
-
-    // ─── Head‐nod & yawn counters ─────────────────────────────────
-    int headNodFrames = 0;
-    int marFrames     = 0;
-
-    // ─── Kalman filters ───────────────────────────────────────────
-    cv::KalmanFilter kfYaw{1,1,0}, kfPitch{1,1,0}, kfMar{1,1,0};
-    cv::Mat          kfMeas, kfState;
-
-    // ─── Helpers ───────────────────────────────────────────────────
     bool findFace(const cv::Mat& frame, cv::Rect& faceBox);
     bool findLandmarks(const cv::Mat& gray,
                        const cv::Rect& faceBox,
-                       std::vector<std::vector<cv::Point2f>>& lms);
-
-    // eye‐aspect ratio on 6‐point eye starting at lm[i0..i0+5]
-    double eyeAspectRatio(const std::vector<cv::Point2f>& lm, int i0);
-
-    // returns true if either pupil is >gazeThresh away from eye center
-    bool isGazeDistracted(const cv::Mat& gray,
-                          const std::vector<cv::Point2f>& lm);
-
-    // unused stub
+                       std::vector<cv::Point2f>& lm);
+    double eyeAspectRatio(const std::vector<cv::Point2f>& lm);
     double headYaw(const std::vector<cv::Point2f>& lm);
-};
 
-#endif // ATTENTION_MONITOR_HPP
+    // core models
+    cv::dnn::Net faceNet;
+    cv::Ptr<cv::face::Facemark> facemark;
+
+    // timing & thresholds
+    using Clock   = std::chrono::steady_clock;
+    using Seconds = std::chrono::duration<double>;
+    Clock::time_point stateStart, warning1Time;
+    int warningLevel = 0;
+
+    static constexpr double warning1Lock   = 5.0;   // after W1, lock DISTRACTED for 5s
+    static constexpr double yawThreshEnter = 25.0;  // degrees
+    static constexpr double yawThreshExit  = 15.0;
+    static constexpr double earThresh      = 0.20;  // eye aspect ratio
+    static constexpr int    earFramesThresh= 10;    // ~1/3s @30fps
+    static constexpr int    longCloseFrames= 150;   // 5s
+    static constexpr int    yawFramesThresh= 15;    // 0.5s
+
+    // state counters
+    int eyesClosedFrames = 0, poseOffFrames = 0, longEyesClosed = 0;
+    int noLmFrames = 0, noLmMaxFrames = 30;
+
+    // PnP & filtering
+    cv::Mat cameraMatrix, distCoeffs;
+    bool camInit = false;
+    std::deque<double> yawHistory;
+    size_t yawHistSize     = 5;
+    double yawSmoothAlpha  = 0.6, yawSmoothed = 0.0;
+
+    AttentionState lastState = AttentionState::ATTENTIVE;
+};
